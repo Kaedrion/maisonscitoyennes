@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Sabliers des Maisons</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; margin-top: 40px; background-color: #f4f4f4; }
+    .maison {
+      margin: 20px auto;
+      padding: 15px;
+      width: 300px;
+      border-radius: 10px;
+      background: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .PIERROCNAU h2 { color: green; }
+    .CROQPOINTU h2 { color: blue; }
+    .SALAMANDARD h2 { color: orange; }
+    .DJAUNES h2 { color: purple; }
+  </style>
+</head>
+<body>
+  <h1>Sabliers des Maisons</h1>
+
+  <div id="maisons"></div>
+  <p id="status"></p>
+
+  <script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycby0XWQtgwH80nffj68INoLM9vxc5e8wf3jC-I0I_W01n6Via-NTHc9D7lYlqsXwbyl0/exec';
+
+    const maisons = [
+      { nom: 'PIERROCNAU', classe: 'PIERROCNAU' },
+      { nom: 'CROQPOINTU', classe: 'CROQPOINTU' },
+      { nom: 'SALAMANDARD', classe: 'SALAMANDARD' },
+      { nom: 'DJAUNES', classe: 'DJAUNES' }
+    ];
+
+    function updatePoints(maison, action) {
+      fetch(`${scriptURL}?maison=${maison}&action=${action}`)
+        .then(res => res.text())
+        .then(() => {
+          document.getElementById('status').innerText = `${maison} modifié !`;
+          loadScores();
+        })
+        .catch(err => {
+          document.getElementById('status').innerText = `Erreur : ${err}`;
+        });
+    }
+
+    function loadScores() {
+      fetch(scriptURL)
+        .then(res => res.json())
+        .then(data => {
+          const container = document.getElementById('maisons');
+          container.innerHTML = '';
+          maisons.forEach(m => {
+            const div = document.createElement('div');
+            div.className = `maison ${m.classe}`;
+            div.innerHTML = `
+              <h2>${m.nom} : <span id="score-${m.nom}">${data[m.nom]}</span> points</h2>
+              <button onclick="updatePoints('${m.nom}', 'add')">+10</button>
+              <button onclick="updatePoints('${m.nom}', 'remove')">-10</button>
+            `;
+            container.appendChild(div);
+          });
+        });
+    }
+
+    loadScores();
+  </script>
+</body>
+</html>
