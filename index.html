@@ -31,48 +31,41 @@
   <div id="maisons"></div>
   <p id="status"></p>
 
-  <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbyzL3ls4BJ1uBeTvqSCflneUNAWh9d_kWhWpbTMIq9Ba8zWAI0gnZD998O46ER9o2SF/exec';
+<script>
+  const endpoint = "https://script.google.com/macros/s/AKfycbyzL3ls4BJ1uBeTvqSCflneUNAWh9d_kWhWpbTMIq9Ba8zWAI0gnZD998O46ER9o2SF/exec";
+  const nomsMaisons = ["PIERROCNAU", "CROQPOINTU", "SALAMANDARD", "DJAUNES"];
+  const valeurs = [10, 50, 100, -10, -50];
 
-    const maisons = [
-      { nom: 'PIERROCNAU', classe: 'PIERROCNAU' },
-      { nom: 'CROQPOINTU', classe: 'CROQPOINTU' },
-      { nom: 'SALAMANDARD', classe: 'SALAMANDARD' },
-      { nom: 'DJAUNES', classe: 'DJAUNES' }
-    ];
+  function fetchScores() {
+    fetch(endpoint)
+      .then(res => res.json())
+      .then(data => {
+        const container = document.getElementById("maisons");
+        container.innerHTML = "";
+        for (let maison of nomsMaisons) {
+          const div = document.createElement("div");
+          div.className = `maison ${maison}`;
+          let buttons = valeurs.map(val => {
+            const label = (val > 0 ? "+" : "") + val;
+            return `<button onclick="updateScore('${maison}', ${val})">${label}</button>`;
+          }).join("");
+          div.innerHTML = `
+            <h2>${maison} : <span id="score-${maison}">${data[maison] ?? 0}</span> pts</h2>
+            ${buttons}
+          `;
+          container.appendChild(div);
+        }
+      });
+  }
 
-    function updatePoints(maison, action) {
-      fetch(`${scriptURL}?maison=${maison}&action=${action}`)
-        .then(res => res.text())
-        .then(() => {
-          document.getElementById('status').innerText = `${maison} modifié !`;
-          loadScores();
-        })
-        .catch(err => {
-          document.getElementById('status').innerText = `Erreur : ${err}`;
-        });
-    }
+  function updateScore(maison, valeur) {
+    const action = valeur > 0 ? "add" : "remove";
+    fetch(`${endpoint}?maison=${maison}&action=${action}&valeur=${Math.abs(valeur)}`)
+      .then(() => fetchScores());
+  }
 
-    function loadScores() {
-      fetch(scriptURL)
-        .then(res => res.json())
-        .then(data => {
-          const container = document.getElementById('maisons');
-          container.innerHTML = '';
-          maisons.forEach(m => {
-            const div = document.createElement('div');
-            div.className = `maison ${m.classe}`;
-            div.innerHTML = `
-              <h2>${m.nom} : <span id="score-${m.nom}">${data[m.nom]}</span> points</h2>
-              <button onclick="updatePoints('${m.nom}', 'add')">+10</button>
-              <button onclick="updatePoints('${m.nom}', 'remove')">-10</button>
-            `;
-            container.appendChild(div);
-          });
-        });
-    }
+  fetchScores();
+</script>
 
-    loadScores();
-  </script>
 </body>
 </html>
